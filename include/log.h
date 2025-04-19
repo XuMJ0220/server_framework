@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include <list>
 
 namespace xumj{
     
@@ -93,6 +94,67 @@ namespace xumj{
     };
 
     /*
+    *@brief Appender基类 不需要构造函数
+    */
+    class LogAppender{
+        
+        public:
+
+            using ptr = std::shared_ptr<LogAppender>;
+
+            /*
+            *@brief 虚析构 基类的不需要实现什么
+            */
+            virtual ~LogAppender(){}
+
+            /*
+            *@brief 一个输出函数，需要是存虚函数
+            *@param[in] event 一个日志事件的智能指针
+            */
+            virtual void log(LoggerEvent::ptr event) = 0;
+    
+    };
+
+    /*
+    *@brief 输出到控制台适配器类
+    */
+    class StdoutLogAppender : public LogAppender{
+        
+        public:
+
+            using ptr = std::shared_ptr<StdoutLogAppender>;
+
+            /*
+            *@brief override是一定要重写
+            */
+            void log(LoggerEvent::ptr event) override;
+        private:
+    };
+
+    /*
+    *@brief 输出到文件适配器类
+    */
+    class FileLogAppender : public LogAppender{
+        
+        public:
+
+            using ptr = std::shared_ptr<FileLogAppender>;
+
+            FileLogAppender(const std::string& filename);
+
+            /*
+            *@brief override是一定要重写
+            */
+            void log(LoggerEvent::ptr event) override;
+
+        private:
+            /*
+            *@brief 文件名
+            */
+            std::string m_filename;
+    };
+
+    /*
     *@brief 日志器
     */
     class Logger{
@@ -128,7 +190,16 @@ namespace xumj{
             *@brief 一个日志的输出,传入要查看的事件，主要是为了获得这个事件的等级
             */
             void log(LoggerEvent::ptr event);
-            
+
+            /*
+            *@brief 添加一个适配器
+            */
+            void addAppender(LogAppender::ptr appender);
+
+            /*
+            *@brief 删除一个适配器
+            */
+            void delAppender(LogAppender::ptr appender);
         private:
             /*
             *@brief 日志器名字，m表示的是私有变量
@@ -139,9 +210,13 @@ namespace xumj{
             *@brief 日志器能输出的最大等级
             */
             LoggerLevel::level m_level;
+
+            /*
+            *@list 存储适配器的智能指针
+            */
+            std::list<LogAppender::ptr> m_appenders;
     };
 }
 
-
-
 #endif // !XUMJ_LOG_H_
+
