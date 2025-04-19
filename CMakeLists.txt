@@ -9,5 +9,12 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 include_directories(${CMAKE_SOURCE_DIR}/include)#头文件路径
 link_directories(${CMAKE_SOURCE_DIR}/lib)#库文件路径
 
-#add_subdirectory(test/muduotest)
+set(LIST 
+    ./src/log.cpp
+    ./examples/01.日志器测试.cpp)
+
+add_executable(01test_logger ${LIST})
+
+
+#target_link_libraries(01.日志器测试  pthread )
 

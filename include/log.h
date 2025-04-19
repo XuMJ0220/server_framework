@@ -112,17 +112,33 @@ namespace xumj{
             /*
             *@brief 获取日志器的名字，返回是引用是直接把私有变量返回除去，避免拷贝，返回值为const是为了不让这个私有变量被修改
             */
-           const std::string& getName(){ return m_name;}
+            const std::string& getName(){ return m_name;}
 
             /*
-            *@brief 一个日志的输出，目前功能和参数还未知
+            *@brief 获取日志器的最大等级
             */
-            void log();
+            LoggerLevel::level getLevel(){ return m_level;}
+
+            /*
+            *@brief 设置日志器能输出的最大等级
+            */
+            void setLevel(LoggerLevel::level val){ m_level = val;}
+
+            /*
+            *@brief 一个日志的输出,传入要查看的事件，主要是为了获得这个事件的等级
+            */
+            void log(LoggerEvent::ptr event);
+            
         private:
             /*
             *@brief 日志器名字，m表示的是私有变量
             */
             std::string m_name;
+
+            /*
+            *@brief 日志器能输出的最大等级
+            */
+            LoggerLevel::level m_level;
     };
 }
 
