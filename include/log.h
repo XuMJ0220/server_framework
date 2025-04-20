@@ -20,6 +20,11 @@ namespace xumj{
                 ERROR = 4,
                 FATAL = 5
             };
+
+            /*
+            *@brief 将等级从数字转为C-字符串
+            */
+           static const char* ToString(LoggerLevel::level level);
     };
 
 
@@ -142,9 +147,6 @@ namespace xumj{
 
             FileLogAppender(const std::string& filename);
 
-            /*
-            *@brief override是一定要重写
-            */
             void log(LoggerEvent::ptr event) override;
 
         private:
@@ -152,6 +154,37 @@ namespace xumj{
             *@brief 文件名
             */
             std::string m_filename;
+    };
+
+    /*
+    *@brief 日志格式
+    */
+    class LogFormatter{
+        
+        public:
+
+            using ptr = std::shared_ptr<LogFormatter>;    
+
+            /*
+            *@brief 构造函数
+            *@param[in] pattern 需要解析的格式,例如"%d{%Y-%m-%d %H:%M:%S}%T%t%T%F%T[%p]%T[%c]%T%f:%l%T%m%n"
+            */
+            explicit LogFormatter(const std::string& pattern);
+
+            /*
+            *@brief 初始化方法
+            */
+            void init();
+
+            /*
+            *@brief 格式化方法,对传入的事件进行格式化
+            *@param[in] event 需要格式化的事件智能指针
+            */
+            std::string format(LoggerEvent::ptr event);
+            
+        private:
+
+            std::string m_pattern;//需要解析的格式
     };
 
     /*
