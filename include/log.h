@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <list>
+#include <vector>
 
 namespace xumj{
     
@@ -182,9 +183,183 @@ namespace xumj{
             */
             std::string format(LoggerEvent::ptr event);
             
+            /*
+            *@brief 对符号进行解析的基类
+            */
+            class FormatItem{
+                
+                public:
+
+                    using ptr = std::shared_ptr<FormatItem>;
+
+                    virtual ~FormatItem(){};
+
+                    virtual void format( std::ostream& os, LoggerEvent::ptr& event) = 0;
+            };
         private:
 
             std::string m_pattern;//需要解析的格式
+
+            std::vector<LogFormatter::FormatItem::ptr> m_items;
+    };
+
+    /*
+    *@brief 对消息进行解析
+    */
+    class MessageFormatItem : public LogFormatter::FormatItem{
+        public:
+
+            explicit MessageFormatItem(const std::string& str = ""){}
+
+            void format(std::ostream& os, LoggerEvent::ptr& event) override;
+    };
+
+    /*
+    *@brief 等等级进行解析
+    */
+    class LevelFormatItem : public LogFormatter::FormatItem{
+
+        public:
+
+            LevelFormatItem(const std::string& str = ""){}
+
+            void format( std::ostream& os, LoggerEvent::ptr& event) override;
+
+    };
+
+    /*
+    *@brief 到目前执行了多少时间进行解析
+    */
+    class ElapseFormatItem : public LogFormatter::FormatItem{
+        
+        public:
+
+            ElapseFormatItem(const std::string& str = ""){}
+
+            void format( std::ostream& os, LoggerEvent::ptr& event) override;
+    };
+
+    /*
+    *@brief 对名字进行解析
+    */
+    class NameFormatItem : public LogFormatter::FormatItem{
+
+        public:
+
+            NameFormatItem( const std::string& str){}
+
+            void format( std::ostream& os, LoggerEvent::ptr& event) override;
+    };
+
+    /*
+    *@brief 对线程ID进行解析
+    */
+    class ThreadIdFormatItem : public LogFormatter::FormatItem{
+        
+        public:
+            
+            ThreadIdFormatItem(const std::string str = ""){}
+
+            void format( std::ostream& os, LoggerEvent::ptr& event) override;
+    };
+
+    /*
+    *@brief 对协程ID进行解析
+    */
+    class FiberIdFormatItem : public LogFormatter::FormatItem{
+
+        public:
+
+            FiberIdFormatItem(const std::string str = ""){}
+
+            void format( std::ostream& os, LoggerEvent::ptr& event) override;
+    };
+
+    /*
+    *@brief 对时间进行解析
+    */
+    class DateTimeFormatItem : public LogFormatter::FormatItem{
+
+        public:
+
+            DateTimeFormatItem(const std::string& format = "%Y-%m-%d %H:%M:%S")
+                :m_format(format)
+            {
+                if(format.empty()){
+                    m_format = "%Y-%m-%d %H:%M:%S";
+                }
+            }
+
+            void format( std::ostream& os, LoggerEvent::ptr& event) override;
+
+        private:
+
+            std::string m_format;
+    };
+
+    /*
+    *@brief 对文件名进行解析
+    */
+    class FilenameFormatItem : public LogFormatter::FormatItem{
+
+        public:
+
+            FilenameFormatItem( const std::string str = ""){}
+
+            void format( std::ostream& os, LoggerEvent::ptr& event) override;
+    };
+
+    /*
+    *@brief 对行号进行解析
+    */
+    class LineFormatItem : public LogFormatter::FormatItem{
+
+        public:
+
+            LineFormatItem( const std::string str = ""){}
+
+            void format( std::ostream& os, LoggerEvent::ptr& event) override;
+    };
+
+    /*
+    *@brief 对新行号进行解析
+    */
+    class NewLineFormatItem : public LogFormatter::FormatItem{
+
+        public:
+
+            NewLineFormatItem( const std::string str = ""){}
+
+            void format( std::ostream& os, LoggerEvent::ptr& event) override;
+    };
+
+    /*
+    *@brief 对字符串进行解析
+    */
+    class StringFormatItem : public LogFormatter::FormatItem{
+
+        public:
+
+            StringFormatItem(const std::string& str)
+                :m_string(str)
+            {}
+
+            void format( std::ostream& os, LoggerEvent::ptr& event) override;
+        private:
+
+            std::string m_string;
+    };
+
+    /*
+    *@brief 对制表格进行解析 
+    */
+    class TabFormatItem : public LogFormatter::FormatItem{
+        
+        public:
+
+            TabFormatItem(const std::string str = ""){}
+
+            void format( std::ostream& os, LoggerEvent::ptr& event) override;
     };
 
     /*

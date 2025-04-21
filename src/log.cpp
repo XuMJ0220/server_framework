@@ -3,6 +3,9 @@
 #include <iostream>
 #include <tuple>
 #include <vector>
+#include <map>
+#include <functional>
+#include <sstream>
 
 namespace xumj{
 
@@ -119,107 +122,205 @@ namespace xumj{
     //"m"  ""                     1          #消息
     //"n"  ""                     1          #换行
     void LogFormatter::init(){
-        //用一个turple来实现存储 符号:子串:解析方式, 用一个vector来存储这些turple
-        //解析方式的0表示普通字符串，1表示可以被解析的字符串
-        std::vector<std::tuple<std::string,std::string,int>> vec;
-
+        //我们粗略的把上面的解析对象分成两类 一类是普通字符串 另一类是可被解析的
+        //可以用 tuple来定义 需要的格式 std::tuple<std::string,std::string,int> 
+        //<符号,子串,类型>  类型0-普通字符串 类型1-可被解析的字符串 
+        //可以用一个 vector来存储 std::vector<std::tuple<std::string,std::string,int> > vec;
+        std::vector<std::tuple<std::string,std::string,int> > vec;
         //解析后的字符串
         std::string nstr;
-
-        //开始解析
-        //"%d{%Y-%m-%d %H:%M:%S}%T%t%T%F%T[%p]%T[%c]%T%f:%l%T%m%n"
-        for(size_t i =0;i<m_pattern.size();i++){
-            if(m_pattern[i]!='%'){
-                //如果是‘[’ ']' ':'等等这些普通字符
-                //把这个普通字符加入到nstr
-                nstr.append(1,'%');
+        //循环中解析
+        for(size_t i = 0; i < m_pattern.size(); ++i) {
+            // 如果不是%号
+            // nstr字符串后添加1个字符m_pattern[i]
+            if(m_pattern[i] != '%') {
+                nstr.append(1, m_pattern[i]);
                 continue;
             }
-            //如果i是‘%’并且i+1也是‘%’
-            if((i+1)<m_pattern.size()){
-                if(m_pattern[i+1]=='%'){
-                    nstr.append(1,m_pattern[i+1]);
+            // m_pattern[i]是% && m_pattern[i + 1] == '%' ==> 两个%,第二个%当作普通字符
+            if((i + 1) < m_pattern.size()) {
+                if(m_pattern[i + 1] == '%') {
+                    nstr.append(1, '%');
                     continue;
                 }
             }
-            //如果i是‘%’并且i+1不是‘%’，需要进行解析
-            std::string str;//存放符号
-            std::string fmt;//存放'{}'中间的子串
+            
+            // m_pattern[i]是% && m_pattern[i + 1] != '%', 需要进行解析
+            size_t n = i + 1;		// 跳过'%',从'%'的下一个字符开始解析
+            int fmt_status = 0;		// 是否解析大括号内的内容: 已经遇到'{',但是还没有遇到'}' 值为1
+            size_t fmt_begin = 0;	// 大括号开始的位置
 
-            size_t n = i+1;//跳过i的‘%’,从下一个开始解析
-            int fmt_status = 0;//如果是0，则表示还没有遇到'{'，如果是1,则表示遇到了'{'但是还没遇到'}'
-            size_t fmt_begin = 0;//'{'开始的地方
-
+            std::string str;
+            std::string fmt;	// 存放'{}'中间截取的字符
             // 从m_pattern[i+1]开始遍历
-            while(n<m_pattern.size()){
-                // m_pattern[n]不是字母 & m_pattern[n]不是'{' & m_pattern[n]不是'}'，比如遇到了[ ] :
-                if(!fmt_status&&(!isalpha(m_pattern[n]))&&m_pattern[n]!='{'&&m_pattern[n]!='}'){
-                    str = m_pattern.substr(i+1,n-i-1);//i+1是'%'的下一个位置，但是这个n是会变的
+            while(n < m_pattern.size()) {
+                // m_pattern[n]不是字母 & m_pattern[n]不是'{' & m_pattern[n]不是'}'
+                if(!fmt_status && (!isalpha(m_pattern[n]) && m_pattern[n] != '{'
+                        && m_pattern[n] != '}')) {
+                    str = m_pattern.substr(i + 1, n - i - 1);
                     break;
                 }
-                if(fmt_status==0){
-                    if(m_pattern[n]=='{'){
-                        //遇到了{，把前面的符号截取
-                        //比如%d{%Y-%m-%d %H:%M:%S}
-                        //这里的i->0是%,(i+1)->1是d,n->2是{,n-i-1是d 
-                        str = m_pattern.substr(i+1,n-i-1);
-                        fmt_status = 1;//遇到了'{'
-                        fmt_begin = n;//标志进入'{'的位置
-                        n++;
+                if(fmt_status == 0) {
+                    if(m_pattern[n] == '{') {
+                        // 遇到'{',将前面的字符截取
+                        str = m_pattern.substr(i + 1, n - i - 1);
+                        //std::cout << "*" << str << std::endl;
+                        fmt_status = 1; // 标志进入'{'
+                        fmt_begin = n;	// 标志进入'{'的位置
+                        ++n;
                         continue;
                     }
-                }else if(fmt_status==1){
-                    if(m_pattern[n]=='}'){
-                        //把'{}'之间的子串截取
-                        fmt =  m_pattern.substr(fmt_begin+1,n-i-1);
+                } else if(fmt_status == 1) {
+                    if(m_pattern[n] == '}') {
+                        // 遇到'}',将和'{'之间的字符截存入fmt
+                        fmt = m_pattern.substr(fmt_begin + 1, n - fmt_begin - 1);
+                        //std::cout << "#" << fmt << std::endl;
                         fmt_status = 0;
-                        n++;
-                        break;//找完一组大括号就退出循环 
+                        ++n;
+                        // 找完一组大括号就退出循环
+                        break;
                     }
                 }
-                n++;//这里是没有遇到'{' 也没有遇到'}'的其他情况，也就是遇到了符号或者{}里面的子串的情况
-                //判断是否遍历结束
-                if(n==m_pattern.size()){
-                    //来到了这里，表示没有进入过前面if(m_pattern[n]=='{')更加没有进入过else if(fmt_status==1)
-                    //比如说%T%t%T%F%
-                    if(str.empty()){
-                        str = m_pattern.substr(i+1);//把比如T这些符号存进去
+                ++n;
+                // 判断是否遍历结束
+                if(n == m_pattern.size()) {
+                    if(str.empty()) {
+                        str = m_pattern.substr(i + 1);
                     }
                 }
             }
 
-            if(fmt_status==0){
-                if(!nstr.empty()){
+            if(fmt_status == 0) {
+                if(!nstr.empty()) {
                     // 保存其他字符 '['  ']'  ':'
                     vec.push_back(std::make_tuple(nstr, std::string(), 0));
                     nstr.clear();
                 }
-                //fmt解析到的
+                // fmt:寻找到的格式
                 vec.push_back(std::make_tuple(str, fmt, 1));
-                i = n-1;//调整i继续向后遍历
-            }else if(fmt_status==1){
+                // 调整i的位置继续向后遍历
+                i = n - 1;
+            } else if(fmt_status == 1) {
                 // 没有找到与'{'相对应的'}' 所以解析报错，格式错误
                 std::cout << "pattern parse error: " << m_pattern << " - " << m_pattern.substr(i) << std::endl;
                 vec.push_back(std::make_tuple("<<pattern_error>>", fmt, 0));
             }
         }
-        if(!nstr.empty()){
+
+        if(!nstr.empty()) {
             vec.push_back(std::make_tuple(nstr, "", 0));
         }
+    
         //输出看下
-        for(auto& it : vec){
-            std::cout<<std::get<0>(it)
-            <<" : "<<std::get<1>(it)
-            <<" : "<<std::get<2>(it)
-            <<std::endl;
+        // for(auto& it : vec){
+        //     std::cout<<std::get<0>(it)
+        //     <<" : "<<std::get<1>(it)
+        //     <<" : "<<std::get<2>(it)
+        //     <<std::endl;
+        // }
+
+        //下面的操作堪称经典
+        std::map<std::string,std::function<FormatItem::ptr(const std::string& str)>>
+        s_format_items = 
+        {
+            #define XX(STR,FORMAT)\
+                {#STR,[](const std::string& str)->FormatItem::ptr{ return FormatItem::ptr(new FORMAT(str));}}
+            
+            XX(d,DateTimeFormatItem),
+            XX(T,TabFormatItem),
+            XX(t,ThreadIdFormatItem),
+            XX(F,FiberIdFormatItem),
+            XX(p,LevelFormatItem),
+            XX(c,NameFormatItem),
+            XX(f,FilenameFormatItem),
+            XX(m,MessageFormatItem),
+            XX(n,NewLineFormatItem),
+            XX(r,ElapseFormatItem),
+            XX(l,LineFormatItem)
+
+            #undef XX
+        };
+
+        for(auto& i : vec){
+
+            if(std::get<2>(i) == 0){
+                //如果是普通字符串
+                m_items.push_back(std::make_shared<StringFormatItem>(std::get<0>(i)));
+            }else{
+                auto it = s_format_items.find(std::get<0>(i));//通过符号查找
+                if(it!=s_format_items.end()){
+                    m_items.push_back(it->second(std::get<1>(i)));
+                }else{
+                    m_items.push_back(std::make_shared<StringFormatItem>("<<error_format"+std::get<0>(i)+">>"));
+                }
+            }
         }
     }
 
     std::string LogFormatter::format(LoggerEvent::ptr event){
         //暂时输出个空
-        return "";
+        //return "";
+        //可以开始编写了
+        std::stringstream ss;
+        for(auto& i : m_items){
+            i->format(ss,event);
+        }
+        return ss.str();
     }
 
+    void MessageFormatItem::format(std::ostream& os, LoggerEvent::ptr& event){
+        os<<"Message";
+    }
+
+    void LevelFormatItem::format( std::ostream& os, LoggerEvent::ptr& event){
+        os<<LoggerLevel::ToString(event->getLevel());
+    }
+
+    void ElapseFormatItem::format( std::ostream& os, LoggerEvent::ptr& event){
+        os<<event->getElapse();
+    }
+
+    void NameFormatItem::format( std::ostream& os, LoggerEvent::ptr& event){
+        os<<"Name";
+    }
+
+    void ThreadIdFormatItem::format( std::ostream& os, LoggerEvent::ptr& event){
+        os<<event->getThreadId();
+    }
+
+    void FiberIdFormatItem::format( std::ostream& os, LoggerEvent::ptr& event){
+        os<<event->getFiberId();
+    }
+
+    void DateTimeFormatItem::format( std::ostream& os, LoggerEvent::ptr& event){
+        tm tm;
+        time_t time = event->getTime();
+        localtime_r(&time,&tm);
+        char buf[64];
+        strftime(buf,sizeof(buf),m_format.c_str(),&tm);
+        os<<buf;
+    }
+
+    void FilenameFormatItem::format( std::ostream& os, LoggerEvent::ptr& event){
+        os<<event->getFile();
+    }
+
+    void LineFormatItem::format( std::ostream& os, LoggerEvent::ptr& event){
+        os<<event->getLine();
+    }
+
+    void NewLineFormatItem::format( std::ostream& os, LoggerEvent::ptr& event){
+        os<<std::endl;
+    }
+
+    void StringFormatItem::format( std::ostream& os, LoggerEvent::ptr& event){
+        os<<m_string;
+    }   
+
+    void TabFormatItem::format( std::ostream& os, LoggerEvent::ptr& event){
+        os<<"\t";
+    }
+    
 /********************************************LogFormatter***************************************************************************/
 /***********************************************Logger***************************************************************************/
     Logger::Logger(const std::string& name)
