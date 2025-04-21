@@ -58,26 +58,27 @@ namespace xumj{
 
     //输出到控制台
     void StdoutLogAppender::log(LoggerEvent::ptr event){
-        //格式化时间
-        std::string format = "%Y-%m-%d %H:%M:%S";
-        tm tm;
-        time_t t = event->getTime();
-        localtime_r(&t,&tm);
-        char tm_buf[64];
-        strftime(tm_buf,sizeof(tm_buf),format.c_str(),&tm);
+        // //格式化时间
+        // std::string format = "%Y-%m-%d %H:%M:%S";
+        // tm tm;
+        // time_t t = event->getTime();
+        // localtime_r(&t,&tm);
+        // char tm_buf[64];
+        // strftime(tm_buf,sizeof(tm_buf),format.c_str(),&tm);
 
-        std::cout
-                //<<event->getTime()<<" "
-                <<tm_buf<<" "//时间
-                <<event->getThreadId()<<" "
-                <<event->getFiberId()<<" "
-                <<"["
-                //<<event->getLevel()
-                <<LoggerLevel::ToString(event->getLevel())//把从数字的等级转为字符串
-                <<"]"
-                <<event->getFile()<<":"<<event->getLine()<<" "
-                <<"输出到控制台的信息"
-                <<std::endl;
+        // std::cout
+        //         //<<event->getTime()<<" "
+        //         <<tm_buf<<" "//时间
+        //         <<event->getThreadId()<<" "
+        //         <<event->getFiberId()<<" "
+        //         <<"["
+        //         //<<event->getLevel()
+        //         <<LoggerLevel::ToString(event->getLevel())//把从数字的等级转为字符串
+        //         <<"]"
+        //         <<event->getFile()<<":"<<event->getLine()<<" "
+        //         <<"输出到控制台的信息"
+        //         <<std::endl;
+        std::cout<<m_format->format(event);
     }
 
     FileLogAppender::FileLogAppender(const std::string& filename)

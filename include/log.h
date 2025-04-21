@@ -107,9 +107,12 @@ namespace xumj{
             std::string m_logName;//日至器名称
     };
 
+    
     /*
     *@brief Appender基类 不需要构造函数
     */
+    class LogFormatter;
+    using LogFormatterPtr = std::shared_ptr<LogFormatter>;//在这里如果不把LogFormatter的具体定义放在上面的话就得这样子做，因为编译器到这里只知道有个LogFormatter，不知道LogFormatter::ptr是什么
     class LogAppender{
         
         public:
@@ -142,7 +145,21 @@ namespace xumj{
             *@brief override是一定要重写
             */
             void log(LoggerEvent::ptr event) override;
+        
+            /*
+            *@brief 设置格式
+            */
+            void setFormatter(LogFormatterPtr val){ m_format = val;}
+            
+            /*
+            *@brief 获得格式
+            */
+            LogFormatterPtr getFormatter() const { return m_format;}
+
         private:
+
+            //LogFormatter::ptr m_format;
+            LogFormatterPtr m_format;
     };
 
     /*
