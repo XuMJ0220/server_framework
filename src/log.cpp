@@ -41,7 +41,8 @@ namespace xumj{
                         uint32_t threadId,
                         uint32_t fiberId,
                         uint64_t time,
-                        LoggerLevel::level level
+                        LoggerLevel::level level,
+                        const std::string& logName
                         )
     :m_file(file),
     m_line(line),
@@ -49,7 +50,8 @@ namespace xumj{
     m_threadId(threadId),
     m_fiberId(fiberId),
     m_time(time),
-    m_level(level)
+    m_level(level),
+    m_logName(logName)
     {}
 /*********************************************LoggerEvent************************************************************************/
 /**********************************************Appender***************************************************************************/
@@ -281,7 +283,8 @@ namespace xumj{
     }
 
     void NameFormatItem::format( std::ostream& os, LoggerEvent::ptr& event){
-        os<<"Name";
+        //os<<"Name";
+        os<<event->getLogName();
     }
 
     void ThreadIdFormatItem::format( std::ostream& os, LoggerEvent::ptr& event){

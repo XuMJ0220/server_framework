@@ -44,7 +44,8 @@ namespace xumj{
                         uint32_t threadId,
                         uint32_t fiberId,
                         uint64_t time,
-                        LoggerLevel::level level
+                        LoggerLevel::level level,
+                        const std::string& logName
                         );
 
             /*
@@ -82,6 +83,11 @@ namespace xumj{
             */
             LoggerLevel::level getLevel() const { return m_level;}
 
+            /*
+            *@brief 获取日志器名称
+            */
+            const std::string& getLogName() const { return m_logName;}
+
         private:
 
             const char* m_file = nullptr;//文件名
@@ -97,6 +103,8 @@ namespace xumj{
             uint64_t m_time = 0;//时间戳
 
             LoggerLevel::level m_level;//日志级别
+
+            std::string m_logName;//日至器名称
     };
 
     /*
