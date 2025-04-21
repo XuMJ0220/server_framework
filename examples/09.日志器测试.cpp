@@ -30,6 +30,8 @@ int main(int argc,char** argv){
     //消息
     event->getSS()<<"hello xumj";
 
+    //log->log(event);
+    xumj::LogEventWrap(log,event).getSS()<<" hahaha";//追加的内容
     log->log(event);
     return 0;
 }

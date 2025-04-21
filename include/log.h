@@ -8,7 +8,7 @@
 #include <sstream>
 
 namespace xumj{
-    
+
     /*
     *@brief 日志级别
     */
@@ -461,6 +461,29 @@ namespace xumj{
             *@list 存储适配器的智能指针
             */
             std::list<LogAppender::ptr> m_appenders;
+    };
+
+    /*
+    *@日志器和事件绑定类
+    */
+    class LogEventWrap{
+
+        public:
+            
+            LogEventWrap(const Logger::ptr& logger,const LoggerEvent::ptr& loggerevent)
+                : m_logger(logger),m_loggerevent(loggerevent)
+            {}
+            ~LogEventWrap(){
+                m_logger->log(m_loggerevent);
+            }
+
+            LoggerEvent::ptr getEvent() { return m_loggerevent;} 
+            std::stringstream& getSS() { return m_loggerevent->getSS();}
+        private:
+
+            Logger::ptr m_logger;
+
+            LoggerEvent::ptr m_loggerevent;
     };
 }
 
