@@ -272,7 +272,8 @@ namespace xumj{
     }
 
     void MessageFormatItem::format(std::ostream& os, LoggerEvent::ptr& event){
-        os<<"Message";
+        //os<<"Message";
+        os<<event->getContent();
     }
 
     void LevelFormatItem::format( std::ostream& os, LoggerEvent::ptr& event){

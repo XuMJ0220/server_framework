@@ -5,6 +5,7 @@
 #include <memory>
 #include <list>
 #include <vector>
+#include <sstream>
 
 namespace xumj{
     
@@ -88,6 +89,16 @@ namespace xumj{
             */
             const std::string& getLogName() const { return m_logName;}
 
+            /*
+            *@brief 字符流转为string
+            */
+            std::string getContent() const { return m_ss.str();}
+
+            /*
+            *@brief 获取字符流
+            */
+            std::stringstream& getSS() { return m_ss;}
+
         private:
 
             const char* m_file = nullptr;//文件名
@@ -105,6 +116,8 @@ namespace xumj{
             LoggerLevel::level m_level;//日志级别
 
             std::string m_logName;//日至器名称
+
+            std::stringstream m_ss;//字符流
     };
 
     
