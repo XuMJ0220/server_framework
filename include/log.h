@@ -485,6 +485,7 @@ namespace xumj{
 
             LoggerEvent::ptr m_loggerevent;
     };
+
 }
 
 #endif // !XUMJ_LOG_H_
