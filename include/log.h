@@ -6,8 +6,40 @@
 #include <list>
 #include <vector>
 #include <sstream>
+#include <unordered_map>
+#include <unistd.h>
+#include <sys/syscall.h>
+
+#include "singleton.h"
 
 namespace xumj{
+
+    #define LOG_LEVEL(NAME,MSG,LEVEL)\
+    {\
+    xumj::Logger::ptr log = std::make_shared<xumj::Logger>(NAME);\
+    xumj::LoggerEvent::ptr event = std::make_shared<xumj::LoggerEvent>\
+    (\
+        __FILE__,\
+        __LINE__,\
+        123456,\
+        syscall(SYS_gettid),\
+        1,\
+        time(0),\
+        LEVEL,\
+        log->getName()\
+    );\
+    xumj::LogFormatter::ptr format = std::make_shared<xumj::LogFormatter>("%d{%Y-%m-%d %H:%M:%S}%T%t%T%F%T[%p]%T[%c]%T%f:%l%T%m%n");\
+    xumj::StdoutLogAppender::ptr stdAppender = std::make_shared<xumj::StdoutLogAppender>();\
+    stdAppender->setFormatter(format);\
+    log->addAppender(stdAppender);\
+    xumj::LogEventWrap(log,event).getSS()<<MSG;\
+    }
+
+    #define LOG_DEBUG(NAME,MSG) LOG_LEVEL(NAME,MSG,xumj::LoggerLevel::DEBUG)
+    #define LOG_INFO(NAME,MSG) LOG_LEVEL(NAME,MSG,xumj::LoggerLevel::INFO)
+    #define LOG_WARN(NAME,MSG) LOG_LEVEL(NAME,MSG,xumj::LoggerLevel::WARN)
+    #define LOG_ERROR(NAME,MSG) LOG_LEVEL(NAME,MSG,xumj::LoggerLevel::ERROR)
+    #define LOG_FATAL(NAME,MSG) LOG_LEVEL(NAME,MSG,xumj::LoggerLevel::FATAL)
 
     /*
     *@brief 日志级别
@@ -486,6 +518,30 @@ namespace xumj{
             LoggerEvent::ptr m_loggerevent;
     };
 
+    /*
+    *@brief 日志器管理 
+    *@details 采用单例模式
+    */
+    class LoggerManager : public Singleton<LoggerManager>{
+        
+        public:
+            /*
+            *@brief 获取日志器
+            */
+            Logger::ptr getLogger(const std::string& name);
+
+            void init();
+
+            Logger::ptr getRoot() const { return m_root;}
+            
+        private:
+            LoggerManager() = default;
+
+            std::unordered_map<std::string,Logger::ptr> m_loggers;
+            
+            Logger::ptr m_root;
+
+    };
 }
 
 #endif // !XUMJ_LOG_H_

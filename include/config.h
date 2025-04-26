@@ -9,6 +9,7 @@
 
 namespace xumj{
 
+
     class ConfigBase{
         public:
 

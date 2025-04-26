@@ -49,9 +49,13 @@ link_directories(${CMAKE_SOURCE_DIR}/lib)#库文件路径
 #     ./examples/08.日志器测试.cpp
 # )
 
-set(LIST09
+# set(LIST09
+#     ./src/log.cpp
+#     ./examples/09.日志器测试.cpp
+# )
+set(LIST10
     ./src/log.cpp
-    ./examples/09.日志器测试.cpp
+    ./examples/10.日志器测试.cpp
 )
 
 # add_executable(01test_logger ${LIST01})
@@ -62,7 +66,7 @@ set(LIST09
 # add_executable(06test_logger ${LIST06})
 # add_executable(07test_logger ${LIST07})
 # add_executable(08test_logger ${LIST08})
-add_executable(09test_logger ${LIST09})
-
+# add_executable(09test_logger ${LIST09})
+add_executable(10test_logger ${LIST10})
 #target_link_libraries(01.日志器测试  pthread )
 
